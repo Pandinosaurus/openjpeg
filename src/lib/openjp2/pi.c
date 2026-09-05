@@ -411,41 +411,37 @@ static OPJ_BOOL opj_pi_next_rpcl(opj_pi_iterator_t * pi)
                     }
                     res = &comp->resolutions[pi->resno];
                     levelno = comp->numresolutions - 1 - pi->resno;
-                    /* Avoids division by zero */
-                    /* Relates to id_000004,sig_06,src_000679,op_arith8,pos_49,val_-17 */
-                    /* of  https://github.com/uclouvain/openjpeg/issues/938 */
-                    if (levelno >= 32 ||
-                            ((comp->dx << levelno) >> levelno) != comp->dx ||
-                            ((comp->dy << levelno) >> levelno) != comp->dy) {
+
+                    if ((OPJ_UINT32)(((OPJ_UINT64)comp->dx << levelno) >> levelno) != comp->dx ||
+                            (OPJ_UINT32)(((OPJ_UINT64)comp->dy << levelno) >> levelno) != comp->dy) {
                         continue;
                     }
-                    if ((comp->dx << levelno) > INT_MAX ||
-                            (comp->dy << levelno) > INT_MAX) {
-                        continue;
-                    }
-                    trx0 = opj_uint_ceildiv(pi->tx0, (comp->dx << levelno));
-                    try0 = opj_uint_ceildiv(pi->ty0, (comp->dy << levelno));
-                    trx1 = opj_uint_ceildiv(pi->tx1, (comp->dx << levelno));
-                    try1 = opj_uint_ceildiv(pi->ty1, (comp->dy << levelno));
+
+                    trx0 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->tx0,
+                                                         ((OPJ_UINT64)comp->dx << levelno));
+                    try0 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->ty0,
+                                                         ((OPJ_UINT64)comp->dy << levelno));
+                    trx1 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->tx1,
+                                                         ((OPJ_UINT64)comp->dx << levelno));
+                    try1 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->ty1,
+                                                         ((OPJ_UINT64)comp->dy << levelno));
                     rpx = res->pdx + levelno;
                     rpy = res->pdy + levelno;
 
-                    /* To avoid divisions by zero / undefined behaviour on shift */
-                    /* in below tests */
-                    /* Fixes reading id:000026,sig:08,src:002419,op:int32,pos:60,val:+32 */
-                    /* of https://github.com/uclouvain/openjpeg/issues/938 */
-                    if (rpx >= 31 || ((comp->dx << rpx) >> rpx) != comp->dx ||
-                            rpy >= 31 || ((comp->dy << rpy) >> rpy) != comp->dy) {
+                    if ((OPJ_UINT32)(((OPJ_UINT64)comp->dx << rpx) >> rpx) != comp->dx ||
+                            (OPJ_UINT32)(((OPJ_UINT64)comp->dy << rpy) >> rpy) != comp->dy) {
                         continue;
                     }
 
                     /* See ISO-15441. B.12.1.3 Resolution level-position-component-layer progression */
-                    if (!((pi->y % (comp->dy << rpy) == 0) || ((pi->y == pi->ty0) &&
-                            ((try0 << levelno) % (1U << rpy))))) {
+                    if (!(((OPJ_UINT64)pi->y % ((OPJ_UINT64)comp->dy << rpy) == 0) ||
+                            ((pi->y == pi->ty0) &&
+                             (((OPJ_UINT64)try0 << levelno) % ((OPJ_UINT64)1U << rpy))))) {
                         continue;
                     }
-                    if (!((pi->x % (comp->dx << rpx) == 0) || ((pi->x == pi->tx0) &&
-                            ((trx0 << levelno) % (1U << rpx))))) {
+                    if (!(((OPJ_UINT64)pi->x % ((OPJ_UINT64)comp->dx << rpx) == 0) ||
+                            ((pi->x == pi->tx0) &&
+                             (((OPJ_UINT64)trx0 << levelno) % ((OPJ_UINT64)1U << rpx))))) {
                         continue;
                     }
 
@@ -457,11 +453,11 @@ static OPJ_BOOL opj_pi_next_rpcl(opj_pi_iterator_t * pi)
                         continue;
                     }
 
-                    prci = opj_uint_floordivpow2(opj_uint_ceildiv(pi->x,
-                                                 (comp->dx << levelno)), res->pdx)
+                    prci = opj_uint_floordivpow2(opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->x,
+                                                 ((OPJ_UINT64)comp->dx << levelno)), res->pdx)
                            - opj_uint_floordivpow2(trx0, res->pdx);
-                    prcj = opj_uint_floordivpow2(opj_uint_ceildiv(pi->y,
-                                                 (comp->dy << levelno)), res->pdy)
+                    prcj = opj_uint_floordivpow2(opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->y,
+                                                 ((OPJ_UINT64)comp->dy << levelno)), res->pdy)
                            - opj_uint_floordivpow2(try0, res->pdy);
                     pi->precno = prci + prcj * res->pw;
                     for (pi->layno = pi->poc.layno0; pi->layno < pi->poc.layno1; pi->layno++) {
@@ -549,41 +545,37 @@ static OPJ_BOOL opj_pi_next_pcrl(opj_pi_iterator_t * pi)
                     OPJ_UINT32 prci, prcj;
                     res = &comp->resolutions[pi->resno];
                     levelno = comp->numresolutions - 1 - pi->resno;
-                    /* Avoids division by zero */
-                    /* Relates to id_000004,sig_06,src_000679,op_arith8,pos_49,val_-17 */
-                    /* of  https://github.com/uclouvain/openjpeg/issues/938 */
-                    if (levelno >= 32 ||
-                            ((comp->dx << levelno) >> levelno) != comp->dx ||
-                            ((comp->dy << levelno) >> levelno) != comp->dy) {
+
+                    if ((OPJ_UINT32)(((OPJ_UINT64)comp->dx << levelno) >> levelno) != comp->dx ||
+                            (OPJ_UINT32)(((OPJ_UINT64)comp->dy << levelno) >> levelno) != comp->dy) {
                         continue;
                     }
-                    if ((comp->dx << levelno) > INT_MAX ||
-                            (comp->dy << levelno) > INT_MAX) {
-                        continue;
-                    }
-                    trx0 = opj_uint_ceildiv(pi->tx0, (comp->dx << levelno));
-                    try0 = opj_uint_ceildiv(pi->ty0, (comp->dy << levelno));
-                    trx1 = opj_uint_ceildiv(pi->tx1, (comp->dx << levelno));
-                    try1 = opj_uint_ceildiv(pi->ty1, (comp->dy << levelno));
+
+                    trx0 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->tx0,
+                                                         ((OPJ_UINT64)comp->dx << levelno));
+                    try0 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->ty0,
+                                                         ((OPJ_UINT64)comp->dy << levelno));
+                    trx1 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->tx1,
+                                                         ((OPJ_UINT64)comp->dx << levelno));
+                    try1 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->ty1,
+                                                         ((OPJ_UINT64)comp->dy << levelno));
                     rpx = res->pdx + levelno;
                     rpy = res->pdy + levelno;
 
-                    /* To avoid divisions by zero / undefined behaviour on shift */
-                    /* in below tests */
-                    /* Relates to id:000019,sig:08,src:001098,op:flip1,pos:49 */
-                    /* of https://github.com/uclouvain/openjpeg/issues/938 */
-                    if (rpx >= 31 || ((comp->dx << rpx) >> rpx) != comp->dx ||
-                            rpy >= 31 || ((comp->dy << rpy) >> rpy) != comp->dy) {
+                    if ((OPJ_UINT32)(((OPJ_UINT64)comp->dx << rpx) >> rpx) != comp->dx ||
+                            (OPJ_UINT32)(((OPJ_UINT64)comp->dy << rpy) >> rpy) != comp->dy) {
                         continue;
                     }
 
                     /* See ISO-15441. B.12.1.4 Position-component-resolution level-layer progression */
-                    if (!((pi->y % (comp->dy << rpy) == 0) || ((pi->y == pi->ty0) &&
-                            ((try0 << levelno) % (1U << rpy))))) {
+                    if (!(((OPJ_UINT64)pi->y % ((OPJ_UINT64)comp->dy << rpy) == 0) ||
+                            ((pi->y == pi->ty0) &&
+                             (((OPJ_UINT64)try0 << levelno) % ((OPJ_UINT64)1U << rpy))))) {
                         continue;
                     }
-                    if (!((pi->x % (comp->dx << rpx) == 0) || ((pi->x == pi->tx0) &&
-                            ((trx0 << levelno) % (1U << rpx))))) {
+                    if (!(((OPJ_UINT64)pi->x % ((OPJ_UINT64)comp->dx << rpx) == 0) ||
+                            ((pi->x == pi->tx0) &&
+                             (((OPJ_UINT64)trx0 << levelno) % ((OPJ_UINT64)1U << rpx))))) {
                         continue;
                     }
 
@@ -595,11 +587,11 @@ static OPJ_BOOL opj_pi_next_pcrl(opj_pi_iterator_t * pi)
                         continue;
                     }
 
-                    prci = opj_uint_floordivpow2(opj_uint_ceildiv(pi->x,
-                                                 (comp->dx << levelno)), res->pdx)
+                    prci = opj_uint_floordivpow2(opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->x,
+                                                 ((OPJ_UINT64)comp->dx << levelno)), res->pdx)
                            - opj_uint_floordivpow2(trx0, res->pdx);
-                    prcj = opj_uint_floordivpow2(opj_uint_ceildiv(pi->y,
-                                                 (comp->dy << levelno)), res->pdy)
+                    prcj = opj_uint_floordivpow2(opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->y,
+                                                 ((OPJ_UINT64)comp->dy << levelno)), res->pdy)
                            - opj_uint_floordivpow2(try0, res->pdy);
                     pi->precno = prci + prcj * res->pw;
                     for (pi->layno = pi->poc.layno0; pi->layno < pi->poc.layno1; pi->layno++) {
@@ -685,40 +677,37 @@ static OPJ_BOOL opj_pi_next_cprl(opj_pi_iterator_t * pi)
                     OPJ_UINT32 prci, prcj;
                     res = &comp->resolutions[pi->resno];
                     levelno = comp->numresolutions - 1 - pi->resno;
-                    /* Avoids division by zero on id_000004,sig_06,src_000679,op_arith8,pos_49,val_-17 */
-                    /* of  https://github.com/uclouvain/openjpeg/issues/938 */
-                    if (levelno >= 32 ||
-                            ((comp->dx << levelno) >> levelno) != comp->dx ||
-                            ((comp->dy << levelno) >> levelno) != comp->dy) {
+
+                    if ((OPJ_UINT32)(((OPJ_UINT64)comp->dx << levelno) >> levelno) != comp->dx ||
+                            (OPJ_UINT32)(((OPJ_UINT64)comp->dy << levelno) >> levelno) != comp->dy) {
                         continue;
                     }
-                    if ((comp->dx << levelno) > INT_MAX ||
-                            (comp->dy << levelno) > INT_MAX) {
-                        continue;
-                    }
-                    trx0 = opj_uint_ceildiv(pi->tx0, (comp->dx << levelno));
-                    try0 = opj_uint_ceildiv(pi->ty0, (comp->dy << levelno));
-                    trx1 = opj_uint_ceildiv(pi->tx1, (comp->dx << levelno));
-                    try1 = opj_uint_ceildiv(pi->ty1, (comp->dy << levelno));
+
+                    trx0 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->tx0,
+                                                         ((OPJ_UINT64)comp->dx << levelno));
+                    try0 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->ty0,
+                                                         ((OPJ_UINT64)comp->dy << levelno));
+                    trx1 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->tx1,
+                                                         ((OPJ_UINT64)comp->dx << levelno));
+                    try1 = opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->ty1,
+                                                         ((OPJ_UINT64)comp->dy << levelno));
                     rpx = res->pdx + levelno;
                     rpy = res->pdy + levelno;
 
-                    /* To avoid divisions by zero / undefined behaviour on shift */
-                    /* in below tests */
-                    /* Fixes reading id:000019,sig:08,src:001098,op:flip1,pos:49 */
-                    /* of https://github.com/uclouvain/openjpeg/issues/938 */
-                    if (rpx >= 31 || ((comp->dx << rpx) >> rpx) != comp->dx ||
-                            rpy >= 31 || ((comp->dy << rpy) >> rpy) != comp->dy) {
+                    if ((OPJ_UINT32)(((OPJ_UINT64)comp->dx << rpx) >> rpx) != comp->dx ||
+                            (OPJ_UINT32)(((OPJ_UINT64)comp->dy << rpy) >> rpy) != comp->dy) {
                         continue;
                     }
 
                     /* See ISO-15441. B.12.1.5 Component-position-resolution level-layer progression */
-                    if (!((pi->y % (comp->dy << rpy) == 0) || ((pi->y == pi->ty0) &&
-                            ((try0 << levelno) % (1U << rpy))))) {
+                    if (!(((OPJ_UINT64)pi->y % ((OPJ_UINT64)comp->dy << rpy) == 0) ||
+                            ((pi->y == pi->ty0) &&
+                             (((OPJ_UINT64)try0 << levelno) % ((OPJ_UINT64)1U << rpy))))) {
                         continue;
                     }
-                    if (!((pi->x % (comp->dx << rpx) == 0) || ((pi->x == pi->tx0) &&
-                            ((trx0 << levelno) % (1U << rpx))))) {
+                    if (!(((OPJ_UINT64)pi->x % ((OPJ_UINT64)comp->dx << rpx) == 0) ||
+                            ((pi->x == pi->tx0) &&
+                             (((OPJ_UINT64)trx0 << levelno) % ((OPJ_UINT64)1U << rpx))))) {
                         continue;
                     }
 
@@ -730,11 +719,11 @@ static OPJ_BOOL opj_pi_next_cprl(opj_pi_iterator_t * pi)
                         continue;
                     }
 
-                    prci = opj_uint_floordivpow2(opj_uint_ceildiv(pi->x,
-                                                 (comp->dx << levelno)), res->pdx)
+                    prci = opj_uint_floordivpow2(opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->x,
+                                                 ((OPJ_UINT64)comp->dx << levelno)), res->pdx)
                            - opj_uint_floordivpow2(trx0, res->pdx);
-                    prcj = opj_uint_floordivpow2(opj_uint_ceildiv(pi->y,
-                                                 (comp->dy << levelno)), res->pdy)
+                    prcj = opj_uint_floordivpow2(opj_uint64_ceildiv_res_uint32((OPJ_UINT64)pi->y,
+                                                 ((OPJ_UINT64)comp->dy << levelno)), res->pdy)
                            - opj_uint_floordivpow2(try0, res->pdy);
                     pi->precno = (OPJ_UINT32)(prci + prcj * res->pw);
                     for (pi->layno = pi->poc.layno0; pi->layno < pi->poc.layno1; pi->layno++) {
@@ -837,18 +826,24 @@ static void opj_get_encoding_parameters(const opj_image_t *p_image,
 
         /* use custom size for precincts */
         for (resno = 0; resno < l_tccp->numresolutions; ++resno) {
-            OPJ_UINT32 l_dx, l_dy;
+            OPJ_UINT64 l_dx, l_dy;
 
             /* precinct width and height */
             l_pdx = l_tccp->prcw[resno];
             l_pdy = l_tccp->prch[resno];
 
-            l_dx = l_img_comp->dx * (1u << (l_pdx + l_tccp->numresolutions - 1 - resno));
-            l_dy = l_img_comp->dy * (1u << (l_pdy + l_tccp->numresolutions - 1 - resno));
+            l_dx = l_img_comp->dx * ((OPJ_UINT64)1u << (l_pdx + l_tccp->numresolutions - 1 -
+                                     resno));
+            l_dy = l_img_comp->dy * ((OPJ_UINT64)1u << (l_pdy + l_tccp->numresolutions - 1 -
+                                     resno));
 
             /* take the minimum size for dx for each comp and resolution */
-            *p_dx_min = opj_uint_min(*p_dx_min, l_dx);
-            *p_dy_min = opj_uint_min(*p_dy_min, l_dy);
+            if (l_dx <= UINT_MAX) {
+                *p_dx_min = opj_uint_min(*p_dx_min, (OPJ_UINT32)l_dx);
+            }
+            if (l_dy <= UINT_MAX) {
+                *p_dy_min = opj_uint_min(*p_dy_min, (OPJ_UINT32)l_dy);
+            }
 
             /* various calculations of extents */
             l_level_no = l_tccp->numresolutions - 1 - resno;
@@ -1417,7 +1412,6 @@ opj_pi_iterator_t *opj_pi_create_decode(opj_image_t *p_image,
     /* pointers */
     opj_pi_iterator_t *l_pi = 00;
     opj_tcp_t *l_tcp = 00;
-    const opj_tccp_t *l_tccp = 00;
     opj_pi_comp_t *l_current_comp = 00;
     opj_image_comp_t * l_img_comp = 00;
     opj_pi_iterator_t * l_current_pi = 00;
@@ -1495,7 +1489,6 @@ opj_pi_iterator_t *opj_pi_create_decode(opj_image_t *p_image,
     /* special treatment for the first packet iterator */
     l_current_comp = l_current_pi->comps;
     l_img_comp = p_image->comps;
-    l_tccp = l_tcp->tccps;
 
     l_current_pi->tx0 = l_tx0;
     l_current_pi->ty0 = l_ty0;
@@ -1529,14 +1522,12 @@ opj_pi_iterator_t *opj_pi_create_decode(opj_image_t *p_image,
         }
         ++l_current_comp;
         ++l_img_comp;
-        ++l_tccp;
     }
     ++l_current_pi;
 
     for (pino = 1 ; pino < l_bound ; ++pino) {
         l_current_comp = l_current_pi->comps;
         l_img_comp = p_image->comps;
-        l_tccp = l_tcp->tccps;
 
         l_current_pi->tx0 = l_tx0;
         l_current_pi->ty0 = l_ty0;
@@ -1568,7 +1559,6 @@ opj_pi_iterator_t *opj_pi_create_decode(opj_image_t *p_image,
             }
             ++l_current_comp;
             ++l_img_comp;
-            ++l_tccp;
         }
         /* special treatment*/
         l_current_pi->include = (l_current_pi - 1)->include;
@@ -1640,7 +1630,6 @@ opj_pi_iterator_t *opj_pi_initialise_encode(const opj_image_t *p_image,
     /* pointers*/
     opj_pi_iterator_t *l_pi = 00;
     opj_tcp_t *l_tcp = 00;
-    const opj_tccp_t *l_tccp = 00;
     opj_pi_comp_t *l_current_comp = 00;
     opj_image_comp_t * l_img_comp = 00;
     opj_pi_iterator_t * l_current_pi = 00;
@@ -1699,9 +1688,12 @@ opj_pi_iterator_t *opj_pi_initialise_encode(const opj_image_t *p_image,
     l_current_pi = l_pi;
 
     /* memory allocation for include*/
-    l_current_pi->include_size = l_tcp->numlayers * l_step_l;
-    l_current_pi->include = (OPJ_INT16*) opj_calloc(l_current_pi->include_size,
-                            sizeof(OPJ_INT16));
+    l_current_pi->include = NULL;
+    if (l_step_l <= UINT_MAX / l_tcp->numlayers) {
+        l_current_pi->include_size = l_tcp->numlayers * l_step_l;
+        l_current_pi->include = (OPJ_INT16*) opj_calloc(l_current_pi->include_size,
+                                sizeof(OPJ_INT16));
+    }
     if (!l_current_pi->include) {
         opj_free(l_tmp_data);
         opj_free(l_tmp_ptr);
@@ -1712,7 +1704,6 @@ opj_pi_iterator_t *opj_pi_initialise_encode(const opj_image_t *p_image,
     /* special treatment for the first packet iterator*/
     l_current_comp = l_current_pi->comps;
     l_img_comp = p_image->comps;
-    l_tccp = l_tcp->tccps;
     l_current_pi->tx0 = l_tx0;
     l_current_pi->ty0 = l_ty0;
     l_current_pi->tx1 = l_tx1;
@@ -1743,14 +1734,12 @@ opj_pi_iterator_t *opj_pi_initialise_encode(const opj_image_t *p_image,
 
         ++l_current_comp;
         ++l_img_comp;
-        ++l_tccp;
     }
     ++l_current_pi;
 
     for (pino = 1 ; pino < l_bound ; ++pino) {
         l_current_comp = l_current_pi->comps;
         l_img_comp = p_image->comps;
-        l_tccp = l_tcp->tccps;
 
         l_current_pi->tx0 = l_tx0;
         l_current_pi->ty0 = l_ty0;
@@ -1780,7 +1769,6 @@ opj_pi_iterator_t *opj_pi_initialise_encode(const opj_image_t *p_image,
             }
             ++l_current_comp;
             ++l_img_comp;
-            ++l_tccp;
         }
 
         /* special treatment*/
